@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Boîte à Outils du Prompt Engineer v4</title>
+    
+    <!-- CDNs Externes -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- Polices -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Fichiers Locaux -->
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+    <script src="app.js" defer></script>
+</head>
+<body x-data="promptApp" x-init="init()">
+    <div class="flex h-screen bg-gray-100">
+        <!-- Sidebar -->
+        <aside class="w-64 bg-white border-r border-gray-200 flex-shrink-0 hidden md:flex md:flex-col">
+            <div class="px-4 py-6">
+                <h1 class="text-2xl font-bold text-indigo-600">🚀 Prompt Toolkit v4</h1>
+            </div>
+            <nav class="flex-1 px-4 space-y-2">
+                <button @click="activeSection = 'explorer'" class="sidebar-link" :class="{'active': activeSection === 'explorer'}">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" /></svg>
+                    <span>Explorateur</span>
+                </button>
+                <button @click="activeSection = 'builder'" class="sidebar-link" :class="{'active': activeSection === 'builder'}">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 0 1-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 1 3.09-3.09L12 5.25l.813 2.846a4.5 4.5 0 0 1 3.09 3.09L18.75 12l-2.846.813a4.5 4.5 0 0 1-3.09 3.09ZM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 0 0-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 0 0 2.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 0 0 2.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 0 0-2.456 2.456Z" /></svg>
+                    <span>Constructeur</span>
+                </button>
+                <div>
+                    <h3 class="px-4 pt-4 pb-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">Référence</h3>
+                    <div class="space-y-2">
+                        <button @click="activeSection = 'techniques'" class="sidebar-link" :class="{'active': activeSection === 'techniques'}">
+                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M10.343 3.94c.09-.542.56-1.007 1.11-1.226l.554-.221m-1.664 1.447a11.953 11.953 0 0 1-5.992 5.992l-.221.554c-.219.55.226 1.11.772 1.11h3.468l-4.555 4.555a.75.75 0 0 0 1.06 1.06l4.555-4.555v3.468c0 .546.56.991 1.11.772l.554-.221a11.953 11.953 0 0 1 5.992-5.992l.221-.554c.219-.55-.226-1.11-.772-1.11h-3.468l4.555-4.555a.75.75 0 1 0-1.06-1.06l-4.555 4.555V4.714c0-.546-.56-.991-1.11-.772L10.343 3.94Z" /></svg>
+                            <span>Techniques</span>
+                        </button>
+                        <button @click="activeSection = 'architectures'" class="sidebar-link" :class="{'active': activeSection === 'architectures'}">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 3v1.5M4.5 8.25H3m18 0h-1.5M4.5 12H3m18 0h-1.5m-15 3.75H3m18 0h-1.5M8.25 19.5V21M12 3v1.5m0 16.5V21m3.75-18v1.5M19.5 8.25h-1.5m-15 3.75h1.5m15 0h-1.5m-15 3.75h1.5m15 0h-1.5" /></svg>
+                            <span>Architectures</span>
+                        </button>
+                    </div>
+                </div>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <div class="flex-1 flex flex-col overflow-hidden">
+            <header class="bg-white border-b border-gray-200 md:hidden">
+                 <div class="flex items-center justify-between px-4 py-3">
+                    <h1 class="text-xl font-bold text-indigo-600">🚀 Prompt Toolkit v4</h1>
+                    <button @click="mobileMenuOpen = !mobileMenuOpen" class="text-gray-500 hover:text-gray-600" aria-label="Ouvrir le menu de navigation">
+                        <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+                    </button>
+                </div>
+                <nav x-show="mobileMenuOpen" x-cloak class="px-2 pt-2 pb-4 space-y-1">
+                    <a href="#" @click.prevent="activeSection = 'explorer'; mobileMenuOpen = false" class="block px-3 py-2 rounded-md text-base font-medium" :class="activeSection === 'explorer' ? 'bg-indigo-50 text-indigo-700' : 'text-gray-600 hover:bg-gray-50'">Explorateur</a>
+                    <a href="#" @click.prevent="activeSection = 'builder'; mobileMenuOpen = false" class="block px-3 py-2 rounded-md text-base font-medium" :class="activeSection === 'builder' ? 'bg-indigo-50 text-indigo-700' : 'text-gray-600 hover:bg-gray-50'">Constructeur</a>
+                    <a href="#" @click.prevent="activeSection = 'techniques'; mobileMenuOpen = false" class="block px-3 py-2 rounded-md text-base font-medium" :class="activeSection === 'techniques' ? 'bg-indigo-50 text-indigo-700' : 'text-gray-600 hover:bg-gray-50'">Techniques</a>
+                    <a href="#" @click.prevent="activeSection = 'architectures'; mobileMenuOpen = false" class="block px-3 py-2 rounded-md text-base font-medium" :class="activeSection === 'architectures' ? 'bg-indigo-50 text-indigo-700' : 'text-gray-600 hover:bg-gray-50'">Architectures</a>
+                </nav>
+            </header>
+
+            <main class="flex-1 overflow-x-hidden overflow-y-auto bg-gray-50">
+                <div class="container mx-auto px-6 py-8">
+                    <!-- Section: Explorateur de Prompts -->
+                    <section x-show="activeSection === 'explorer'" x-cloak x-transition>
+                        <div class="mb-8">
+                            <h1 class="text-3xl md:text-4xl font-bold text-gray-900">Explorateur de Prompts</h1>
+                            <p class="mt-2 text-lg text-gray-600">Trouvez le prompt parfait pour votre tâche. Utilisez les filtres, la recherche, ou laissez Gemini vous inspirer.</p>
+                        </div>
+
+                        <div class="bg-white p-4 rounded-lg border border-gray-200 mb-6">
+                            <div class="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+                                <div class="md:col-span-1">
+                                    <label for="search" class="block text-sm font-medium text-gray-700">Rechercher</label>
+                                    <input type="text" id="search" x-model.debounce.300ms="searchTerm" placeholder="Ex: SEO, script vidéo..." class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                                </div>
+                                <div>
+                                    <label for="categoryFilter" class="block text-sm font-medium text-gray-700">Catégorie</label>
+                                    <select id="categoryFilter" x-model="categoryFilter" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                                        <option value="all">Toutes</option>
+                                        <template x-for="category in uniqueCategories" :key="category"><option :value="category" x-text="category"></option></template>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label for="techniqueFilter" class="block text-sm font-medium text-gray-700">Technique</label>
+                                    <select id="techniqueFilter" x-model="techniqueFilter" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                                        <option value="all">Toutes</option>
+                                        <template x-for="technique in uniqueTechniques" :key="technique"><option :value="technique" x-text="technique"></option></template>
+                                    </select>
+                                </div>
+                                <div>
+                                    <button @click="isIdeaModalOpen = true" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-md flex items-center justify-center">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor"><path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z" /></svg>
+                                        <span>Idées</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            <template x-for="prompt in filteredPrompts()" :key="prompt.id">
+                                <div @click="openModal(prompt)" class="prompt-card bg-white rounded-lg p-6 cursor-pointer flex flex-col justify-between">
+                                    <div>
+                                        <span class="inline-block bg-indigo-100 text-indigo-800 text-xs font-semibold mr-2 px-2.5 py-0.5 rounded-full" x-text="prompt.category"></span>
+                                        <h3 class="font-bold text-lg mt-2 text-gray-800" x-text="prompt.title"></h3>
+                                        <p class="text-gray-600 text-sm mt-2 line-clamp-3" x-text="prompt.objective"></p>
+                                    </div>
+                                    <div class="mt-4 text-xs text-gray-500">
+                                        Technique: <span class="font-medium text-gray-700" x-text="prompt.techniques.join(', ')"></span>
+                                    </div>
+                                </div>
+                            </template>
+                        </div>
+                        <div x-show="!prompts.length || filteredPrompts().length === 0" class="text-center py-12" x-transition>
+                             <p class="text-gray-500">Aucun prompt ne correspond à vos critères de recherche.</p>
+                        </div>
+                    </section>
+
+                    <!-- Section: Techniques de Prompting -->
+                    <section x-show="activeSection === 'techniques'" x-cloak x-transition>
+                        <div class="mb-12">
+                            <h1 class="text-3xl md:text-4xl font-bold text-gray-900">Les Clés du Prompt Engineering</h1>
+                            <p class="mt-2 text-lg text-gray-600 max-w-3xl">Maîtrisez l'art de la formulation d'instructions précises et efficaces.</p>
+                        </div>
+                         <div class="flex flex-col md:flex-row gap-8">
+                            <div class="md:w-1/3">
+                                <ul class="space-y-2">
+                                    <template x-for="(technique, index) in techniques" :key="index">
+                                        <li>
+                                            <button @click="activeTechnique = index" :class="{'bg-indigo-600 text-white': activeTechnique === index, 'bg-white hover:bg-gray-100': activeTechnique !== index}" class="w-full text-left p-4 rounded-lg border border-gray-200 transition">
+                                                <h3 class="font-bold" x-text="technique.name"></h3>
+                                                <p class="text-sm opacity-80" x-text="technique.subtitle"></p>
+                                            </button>
+                                        </li>
+                                    </template>
+                                </ul>
+                            </div>
+                            <div class="md:w-2/3 bg-white p-6 rounded-lg border border-gray-200" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 transform scale-95" x-transition:enter-end="opacity-100 transform scale-100">
+                                <template x-if="techniques.length > 0">
+                                    <div>
+                                        <h2 class="text-2xl font-bold mb-4" x-text="techniques[activeTechnique].name"></h2>
+                                        <p class="text-gray-700 mb-6 prose max-w-none" x-html="techniques[activeTechnique].description"></p>
+                                        <div class="bg-gray-50 p-4 rounded-lg border">
+                                            <h4 class="font-semibold mb-2">Exemple :</h4>
+                                            <pre class="whitespace-pre-wrap text-sm font-mono bg-gray-900 text-white p-4 rounded-md"><code x-text="techniques[activeTechnique].example"></code></pre>
+                                        </div>
+                                    </div>
+                                </template>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- Section: Architectures des Modèles -->
+                    <section x-show="activeSection === 'architectures'" x-cloak x-transition>
+                         <div class="mb-12">
+                            <h1 class="text-3xl md:text-4xl font-bold text-gray-900">Sous le Capot des Modèles IA</h1>
+                            <p class="mt-2 text-lg text-gray-600 max-w-3xl">Comprenez les "constitutions" internes des LLMs pour mieux anticiper leurs réponses.</p>
+                        </div>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+                            <template x-for="(model, index) in systemPrompts" :key="index">
+                                <button @click="activeModel = index" :class="{'ring-2 ring-indigo-500 ring-offset-2': activeModel === index}" class="p-4 bg-white rounded-lg border border-gray-200 text-center transition hover:shadow-md">
+                                    <div class="text-3xl mb-2" x-text="model.icon"></div>
+                                    <h3 class="font-bold" x-text="model.name"></h3>
+                                    <p class="text-xs text-gray-500" x-text="model.provider"></p>
+                                </button>
+                            </template>
+                        </div>
+                        <template x-if="systemPrompts.length > 0">
+                            <div x-show="activeModel !== null" class="bg-white p-8 rounded-lg border border-gray-200" x-transition>
+                                <h2 class="text-2xl font-bold mb-2" x-text="systemPrompts[activeModel].name"></h2>
+                                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
+                                    <div>
+                                        <h4 class="font-semibold text-gray-500 text-sm uppercase tracking-wider">Mission Principale</h4>
+                                        <p class="mt-2 text-gray-800" x-text="systemPrompts[activeModel].mission"></p>
+                                    </div>
+                                    <div>
+                                        <h4 class="font-semibold text-gray-500 text-sm uppercase tracking-wider">Contraintes Clés</h4>
+                                        <p class="mt-2 text-gray-800" x-text="systemPrompts[activeModel].constraints"></p>
+                                    </div>
+                                    <div>
+                                        <h4 class="font-semibold text-gray-500 text-sm uppercase tracking-wider">Comportement par Défaut</h4>
+                                        <p class="mt-2 text-gray-800" x-text="systemPrompts[activeModel].behavior"></p>
+                                    </div>
+                                </div>
+                            </div>
+                        </template>
+                        <div class="mt-8 bg-white p-6 rounded-lg border border-gray-200">
+                            <h2 class="text-2xl font-bold text-center mb-4">Distribution des Prompts</h2>
+                            <div class="chart-container">
+                                <canvas id="categoryChart"></canvas>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- Section: Constructeur de Prompts -->
+                    <section x-show="activeSection === 'builder'" x-cloak x-transition>
+                        <div class="mb-12">
+                            <h1 class="text-3xl md:text-4xl font-bold text-gray-900">Constructeur de Prompts</h1>
+                            <p class="mt-2 text-lg text-gray-600">Passez de l'idée à l'instruction parfaite. Structurez, améliorez et testez vos prompts en temps réel.</p>
+                        </div>
+                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                            <!-- Left Panel: Form -->
+                            <div class="bg-white p-6 rounded-lg border border-gray-200 space-y-6">
+                                <div class="space-y-1">
+                                    <h3 class="text-lg font-semibold text-gray-800">Étape 1: Définir le Rôle</h3>
+                                    <p class="text-sm text-gray-500">Donnez une personnalité à l'IA.</p>
+                                    <input type="text" id="builder-persona" x-model="builder.persona" placeholder="Ex: Agis comme un expert en marketing digital..." class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                                </div>
+                                <div class="space-y-1">
+                                    <h3 class="text-lg font-semibold text-gray-800">Étape 2: Décrire la Tâche</h3>
+                                    <p class="text-sm text-gray-500">Soyez précis sur ce que vous voulez.</p>
+                                    <textarea id="builder-task" x-model="builder.task" rows="4" placeholder="Ex: Crée 3 slogans pour une nouvelle marque de café..." class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"></textarea>
+                                </div>
+                                <div class="space-y-1">
+                                    <h3 class="text-lg font-semibold text-gray-800">Étape 3: Fournir le Contexte</h3>
+                                    <p class="text-sm text-gray-500">Donnez les informations nécessaires.</p>
+                                    <textarea id="builder-context" x-model="builder.context" rows="3" placeholder="Ex: La marque cible les jeunes professionnels..." class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"></textarea>
+                                </div>
+                                <div class="space-y-1">
+                                    <h3 class="text-lg font-semibold text-gray-800">Étape 4: Spécifier le Format</h3>
+                                     <p class="text-sm text-gray-500">Comment la réponse doit-elle être structurée ?</p>
+                                    <select id="builder-format" x-model="builder.format" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                                        <option value="">Aucun format spécifique</option>
+                                        <option value="une liste à puces">Liste à puces</option>
+                                        <option value="un tableau Markdown">Tableau Markdown</option>
+                                        <option value="un objet JSON">Objet JSON</option>
+                                        <option value="un paragraphe concis">Paragraphe concis</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <h3 class="text-lg font-semibold text-gray-800">Étape 5 (Optionnel): Donner des Exemples</h3>
+                                    <p class="text-sm text-gray-500">Guidez l'IA avec la technique "Few-shot".</p>
+                                    <div class="space-y-2 mt-2">
+                                        <template x-for="(shot, index) in builder.fewShots" :key="index">
+                                            <div class="grid grid-cols-1 md:grid-cols-2 gap-2 bg-gray-50 p-3 rounded-md border">
+                                                 <input type="text" x-model="shot.input" placeholder="Entrée (Ex: 'Voiture')" class="block w-full rounded-md border-gray-300 shadow-sm text-sm">
+                                                 <div class="flex items-center">
+                                                    <input type="text" x-model="shot.output" placeholder="Sortie (Ex: 'Véhicule')" class="block w-full rounded-md border-gray-300 shadow-sm text-sm">
+                                                    <button @click="removeFewShot(index)" class="ml-2 text-red-500 hover:text-red-700 p-1 rounded-full" aria-label="Supprimer cet exemple">&times;</button>
+                                                 </div>
+                                            </div>
+                                        </template>
+                                    </div>
+                                    <button @click="addFewShot" class="mt-2 text-sm text-indigo-600 hover:text-indigo-800 font-semibold">+ Ajouter un exemple</button>
+                                </div>
+                            </div>
+                            <!-- Right Panel: Output -->
+                            <div class="space-y-6">
+                                <div class="bg-gray-800 text-white p-6 rounded-lg shadow-lg flex flex-col h-full">
+                                    <div class="flex justify-between items-center mb-4">
+                                        <h3 class="text-xl font-semibold text-gray-200">Votre Prompt Final</h3>
+                                        <button @click="shareBuilderPrompt()" class="bg-gray-700 hover:bg-gray-600 text-white font-bold py-1 px-3 rounded-md flex items-center text-sm">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8.684 13.342C8.886 12.938 9 12.482 9 12s-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.367 2.684 3 3 0 00-5.367-2.684z" /></svg>
+                                            <span x-text="shareMessage"></span>
+                                        </button>
+                                    </div>
+                                    <pre class="whitespace-pre-wrap text-sm font-mono flex-grow bg-gray-900 p-4 rounded-md min-h-[150px]" x-text="generateBuilderPrompt()"></pre>
+                                    <div class="mt-4 grid grid-cols-2 gap-4">
+                                        <button @click="optimizePrompt()" :disabled="isLoading" class="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded-md disabled:opacity-50 flex items-center justify-center">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z" clip-rule="evenodd" /></svg>
+                                            Améliorer
+                                        </button>
+                                        <button @click="testBuilderPrompt()" :disabled="isLoading" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-md disabled:opacity-50 flex items-center justify-center">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd" /></svg>
+                                            Tester
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="bg-white p-6 rounded-lg border border-gray-200 min-h-[200px] flex flex-col">
+                                     <div class="flex items-center justify-between mb-4">
+                                        <h3 class="text-xl font-semibold text-gray-800">Réponse de Gemini</h3>
+                                        <div class="flex space-x-2">
+                                            <button @click="builder.activeTab = 'test'" class="tab-button" :class="{'active': builder.activeTab === 'test'}">Test</button>
+                                            <button @click="builder.activeTab = 'improvement'" class="tab-button" :class="{'active': builder.activeTab === 'improvement'}">Amélioration</button>
+                                        </div>
+                                     </div>
+                                     <div class="flex-grow">
+                                         <div x-show="isLoading" class="flex justify-center items-center h-full" x-transition><div class="loader"></div></div>
+                                         <div x-show="!isLoading" class="prose max-w-none">
+                                            <div x-show="builder.activeTab === 'test'">
+                                                <div x-show="builder.testResponse" x-transition>
+                                                    <pre class="whitespace-pre-wrap text-sm font-mono bg-gray-50 p-4 rounded-md border" x-text="builder.testResponse"></pre>
+                                                </div>
+                                                <div x-show="!builder.testResponse && !builder.apiError" class="text-gray-500 flex items-center justify-center h-full">La réponse du test apparaîtra ici.</div>
+                                            </div>
+                                            <div x-show="builder.activeTab === 'improvement'">
+                                                <div x-show="builder.improvementResponse" x-transition>
+                                                    <pre class="whitespace-pre-wrap text-sm font-mono bg-gray-50 p-4 rounded-md border" x-html="builder.improvementResponse"></pre>
+                                                </div>
+                                                <div x-show="!builder.improvementResponse && !builder.apiError" class="text-gray-500 flex items-center justify-center h-full">La suggestion d'amélioration apparaîtra ici.</div>
+                                            </div>
+                                            <div x-show="builder.apiError" class="text-red-600" x-text="builder.apiError"></div>
+                                         </div>
+                                     </div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Modal (Prompt Details) -->
+    <div x-show="isModalOpen" x-cloak class="fixed inset-0 z-50 overflow-y-auto modal-bg flex items-center justify-center p-4" @click.away="isModalOpen = false">
+        <div class="bg-white rounded-lg shadow-xl max-w-2xl w-full" @click.stop x-transition>
+            <div class="p-6">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <h2 class="text-2xl font-bold" x-text="selectedPrompt.title"></h2>
+                        <span class="inline-block bg-indigo-100 text-indigo-800 text-xs font-semibold mr-2 px-2.5 py-0.5 rounded-full mt-2" x-text="selectedPrompt.category"></span>
+                    </div>
+                    <button @click="isModalOpen = false" class="text-gray-400 hover:text-gray-600" aria-label="Fermer la fenêtre modale">&times;</button>
+                </div>
+                <p class="text-gray-700 mt-4"><strong class="font-semibold">Objectif:</strong> <span x-text="selectedPrompt.objective"></span></p>
+                <div class="mt-4 bg-gray-50 p-4 rounded-lg border">
+                    <h4 class="font-semibold mb-2">Texte du Prompt :</h4>
+                    <pre x-ref="modalPrompt" class="whitespace-pre-wrap text-sm font-mono bg-gray-900 text-white p-4 rounded-md" x-text="selectedPrompt.text"></pre>
+                </div>
+                <div class="mt-6 flex justify-end gap-3">
+                    <button @click="editInBuilder(selectedPrompt)" class="bg-gray-100 hover:bg-gray-200 text-gray-800 font-bold py-2 px-4 rounded-md">
+                       Modifier
+                    </button>
+                    <button @click="copyToClipboard($refs.modalPrompt.innerText)" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-md flex items-center justify-center w-28">
+                       <span x-show="copyMessage === 'Copier'">
+                           <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
+                       </span>
+                       <span x-show="copyMessage !== 'Copier'">
+                           <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" /></svg>
+                       </span>
+                       <span x-text="copyMessage"></span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal (Idea Generation) -->
+    <div x-show="isIdeaModalOpen" x-cloak class="fixed inset-0 z-50 overflow-y-auto modal-bg flex items-center justify-center p-4" @click.away="isIdeaModalOpen = false">
+        <div class="bg-white rounded-lg shadow-xl max-w-2xl w-full" @click.stop x-transition>
+            <div class="p-6">
+                <div class="flex justify-between items-start">
+                    <h2 class="text-2xl font-bold">✨ Générateur d'Idées</h2>
+                    <button @click="isIdeaModalOpen = false" class="text-gray-400 hover:text-gray-600" aria-label="Fermer la fenêtre modale">&times;</button>
+                </div>
+                <p class="text-gray-600 mt-2">En panne d'inspiration ? Entrez un sujet et laissez Gemini vous proposer des idées.</p>
+                
+                <div class="mt-4">
+                    <label for="idea-topic" class="block text-sm font-medium text-gray-700">Sujet</label>
+                    <div class="flex gap-2 mt-1">
+                        <input type="text" id="idea-topic" x-model="ideaTopic" @keydown.enter="generateIdeas()" placeholder="Ex: e-commerce, santé, éducation..." class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                        <button @click="generateIdeas()" :disabled="isLoading" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-md disabled:opacity-50">Générer</button>
+                    </div>
+                </div>
+
+                <div class="mt-6 min-h-[200px]">
+                    <div x-show="isLoading" class="flex justify-center items-center h-full" x-transition><div class="loader"></div></div>
+                    <div x-show="!isLoading && ideaResults.length > 0" class="space-y-3" x-transition>
+                        <template x-for="(idea, index) in ideaResults" :key="index">
+                            <div class="bg-gray-50 p-3 rounded-md border">
+                                <h4 class="font-semibold" x-text="idea.title"></h4>
+                                <p class="text-sm text-gray-600" x-text="idea.objective"></p>
+                            </div>
+                        </template>
+                    </div>
+                    <div x-show="!isLoading && apiError" class="text-red-500" x-text="apiError"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
